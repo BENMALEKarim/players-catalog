@@ -1,0 +1,68 @@
+name: CI pipeline
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'frontend/**'
+
+jobs:  
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "building and testing the app ..."
+
+  build-container-image:
+    runs-on: ubuntu-latest
+    needs: build-test
+
+    outputs:
+      IMAGE_TAG: ${{ steps.set_env.outputs.IMAGE_TAG }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Login to Container Registry
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+        password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+
+    - name: Set environment variables
+      id: set_env
+      run: |
+        echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      file: frontend/Dockerfile
+      with:
+        push: true
+        tags: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}/players-catalog-frontend:${{ github.sha }}
+
+  update-helm-image-tag:
+    needs: build-container-image
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: ${{needs.build-container-image.outputs.IMAGE_TAG}}
+
+    # steps:  
+    # - name: Clone my config repository
+    #   run: |
+    #     git clone https://github.com/BENMALEKarim/awesome-app-combined-argo.git
+
+    # - name: Update Helm values file
+    #   uses: mikefarah/yq@master
+    #   with:
+    #     cmd: yq eval '.image.tag = "${{ env.IMAGE_TAG }}"' -i awesome-app-combined-argo/values/application-values.yaml
+
+    # - name: Commit and push changes
+    #   run: |
+    #     cd awesome-app-combined-argo
+    #     git config user.email ${{ secrets.REPOSITORY_EMAIL }}
+    #     git config user.name ${{ secrets.REPOSITORY_USER }}
+    #     git add .
+    #     git commit -m "Update image.tag for awesome-app ${{ env.IMAGE_TAG }}"
+    #     git push https://${{ secrets.REPOSITORY_TOKEN }}@github.com/BENMALEKarim/awesome-app-combined-argo.git
