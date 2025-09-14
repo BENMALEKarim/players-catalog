@@ -37,9 +37,9 @@ jobs:
 
     - name: Build and push
       uses: docker/build-push-action@v6
-      context: backend/.
       with:
         push: true
+        context: backend/.
         tags: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}/players-catalog-backend:${{ github.sha }}
 
   # update-helm-image-tag:

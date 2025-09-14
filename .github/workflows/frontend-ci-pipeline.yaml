@@ -37,9 +37,9 @@ jobs:
 
     - name: Build and push
       uses: docker/build-push-action@v6
-      context: frontend/.
       with:
         push: true
+        context: frontend/.
         tags: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}/players-catalog-frontend:${{ github.sha }}
 
   # update-helm-image-tag:
