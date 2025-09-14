@@ -36,17 +36,17 @@ jobs:
         echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_OUTPUT
 
     - name: Build and push
-      uses: docker/build-push-action@v5
-      file: backend/Dockerfile
+      uses: docker/build-push-action@v6
+      context: backend/.
       with:
         push: true
         tags: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}/players-catalog-backend:${{ github.sha }}
 
-  update-helm-image-tag:
-    needs: build-container-image
-    runs-on: ubuntu-latest
-    env:
-      IMAGE_TAG: ${{needs.build-container-image.outputs.IMAGE_TAG}}
+  # update-helm-image-tag:
+  #   needs: build-container-image
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     IMAGE_TAG: ${{needs.build-container-image.outputs.IMAGE_TAG}}
 
     # steps:  
     # - name: Clone my config repository
